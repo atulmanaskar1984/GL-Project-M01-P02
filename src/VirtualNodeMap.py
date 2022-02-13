@@ -20,11 +20,11 @@ class VirtualNodeMap:
     # Populates the Virtual Node Nap, given the set of Node names.
     # Creates a mapping of Virtual Node to corresponding assigned physical Node
     def populate_map(self):
-
         # Problem statement 1
         # Generate a dict of vnode ids (0 to (TOTAL_VIRTUAL_NODES - 1) mapped randomly 
         # but equally (as far as maths permits) to node names
-        pass
+        for vnode in range(self._TOTAL_VIRTUAL_NODES):
+            self._vnode_map[vnode] = self.node_names[vnode % len(self.node_names)]
 
     # Return the vnode name mapped to a particular vnode
     def get_node_for_vnode(self, vnode):

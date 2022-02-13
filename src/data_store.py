@@ -4,6 +4,7 @@ import random
 from InfoGenerator import InfoGenerator
 from User import UserInfo, UserData
 from Node import Node
+from VirtualNodeMap import VirtualNodeMap
 
 TOTAL_VIRTUAL_NODES = 200
 DEFAULT_NUM_NODES = 4
@@ -36,7 +37,6 @@ for i in range(1, len(node_names)):
 
 for name in node_names:
     node_dict[name].populate_nodes(node_dict)
-
 
 # Populates the distributed data store
 for i in range(INITIAL_NUM_KEYS):

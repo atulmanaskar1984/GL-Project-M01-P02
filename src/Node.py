@@ -39,10 +39,13 @@ class Node:
         # Update this function to return value from local store if exists (assuming it's the owner)
         # Otherwise it should find the owner using get_assigned_node function in _vnode_map
         # and use get_data in that node to return the value
-
-        return self._data_store[key]
-
-
+        if key in self._data_store:
+            return self._data_store[key]
+        else:
+            print(self._vnode_map.get_assigned_node(key))
+            node = self._node_dict[self._vnode_map.get_assigned_node(key)]
+            # print(node._data_store[key])
+            return node._data_store[key]
 
     # For a masterless data save/update, any key update can be sent to any Node
     # This node should find the Node with ownership and act as a proxy to set data in 
