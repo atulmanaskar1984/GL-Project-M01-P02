@@ -25,6 +25,7 @@ class VirtualNodeMap:
         # but equally (as far as maths permits) to node names
         for vnode in range(self._TOTAL_VIRTUAL_NODES):
             self._vnode_map[vnode] = self.node_names[vnode % len(self.node_names)]
+            #print(f' {vnode} , {self.node_names[vnode % len(self.node_names)]}')
 
     # Return the vnode name mapped to a particular vnode
     def get_node_for_vnode(self, vnode):
@@ -41,3 +42,9 @@ class VirtualNodeMap:
     def set_new_assigned_node(self, vnode, new_node_name):
         self._vnode_map[vnode] = new_node_name
 
+    def get_list_of_vnodes_assigned_to_node(self, node_name):
+        output_list = []
+        for vnode in self._vnode_map:
+            if self._vnode_map[vnode] == node_name:
+                output_list.append(vnode)
+        return output_list

@@ -4,7 +4,6 @@ import random
 from InfoGenerator import InfoGenerator
 from User import UserInfo, UserData
 from Node import Node
-from VirtualNodeMap import VirtualNodeMap
 
 TOTAL_VIRTUAL_NODES = 200
 DEFAULT_NUM_NODES = 4
@@ -120,7 +119,8 @@ any_other_node = next(node_iter)
 print('Random pickup of various keys on any node')
 for i in range(10):
     user_id = random.randint(0, INITIAL_NUM_KEYS - 1)
-    print(any_node.get_data(user_id))
+    print(user_id)
+    print(f' {user_id}, {any_node.get_data(user_id)}')
 print('\n\n')
 
 # Test read/write on a new key
@@ -128,7 +128,7 @@ user_info = UserInfo(InfoGenerator.generate_user_id(),
                              UserData(InfoGenerator.generate_email(RANDOM_STRING_LENGTH),
                                         InfoGenerator.generate_password(PASSWORD_LENGTH)))
 
-print(f'Generated user data: {user_info.user_data}')
-any_node.set_data(user_info.user_id, user_info.user_data)
-fetched_user_data = any_other_node.get_data(user_info.user_id)
-print(f'Fetched user data: {fetched_user_data}')
+#print(f'Generated user data: {user_info.user_data}')
+#any_node.set_data(user_info.user_id, user_info.user_data)
+#fetched_user_data = any_other_node.get_data(user_info.user_id)
+#print(f'Fetched user data: {fetched_user_data}')

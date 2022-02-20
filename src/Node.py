@@ -34,7 +34,6 @@ class Node:
     # Otherwise it should find the Node with ownership and act as a proxy to get data from 
     # that node and return to the client
     def get_data(self, key):
-        
         # Problem statement 2.a
         # Update this function to return value from local store if exists (assuming it's the owner)
         # Otherwise it should find the owner using get_assigned_node function in _vnode_map
@@ -42,10 +41,10 @@ class Node:
         if key in self._data_store:
             return self._data_store[key]
         else:
-            print(self._vnode_map.get_assigned_node(key))
+            #print(self._vnode_map.get_assigned_node(key))
             node = self._node_dict[self._vnode_map.get_assigned_node(key)]
-            # print(node._data_store[key])
-            return node._data_store[key]
+            #print(node._data_store[key])
+            return node.get_data(key)
 
     # For a masterless data save/update, any key update can be sent to any Node
     # This node should find the Node with ownership and act as a proxy to set data in 
@@ -62,7 +61,8 @@ class Node:
             # Update this else section to find the owner using get_assigned_node function in _vnode_map
             # and set the value in the correct node. Use direct assignment if its the current node
             # or call set_data in the remote note otherwise
-            self._data_store[key] = copy.deepcopy(value)
+            node = self._node_dict[self._vnode_map.get_assigned_node(key)]
+            node.set_data(key, value, True)
 
     def remove_data(self, key):
         return self._data_store.pop(key, 'Key not found')
@@ -116,17 +116,19 @@ class Node:
     # It selects a part of its vnode set to assign to the new node
     # It then creates the transfer_dict for keys from the to-be transferred vnodes
     def add_new_node(self, new_node_name, new_node):
-        local_vnode_list = []
         self.add_node_to_mapping(new_node_name, new_node)
         
         # Problem statement 3.a
         # Finds all vnodes mapped to this node and shuffles them
-        # Implement this logic and store in local_vnode_list        
+        # Implement this logic and store in local_vnode_list
+        local_vnode_list = self._vnode_map.get_list_of_vnodes_assigned_to_node(self.name)
 
         # Prepares to select proportional vnodes and their corresponding keys to transfer
         transfer_slice = round(len(local_vnode_list) / len(self._node_dict))
+        #print(transfer_slice)
         local_vnode_slice = local_vnode_list[0:transfer_slice]
-
+        #for vnode in local_vnode_slice:
+            #print(f' {self.name} => {vnode}')
         transfer_dict = {}
 
         # Problem statement 3.b
@@ -139,7 +141,19 @@ class Node:
         #               ...
         #                }
         # Here 23 and 96 are examples of vnode ids
-        
+
+        # Start creating a transfer object with empty list of transfer keys
+        for vnode_number in local_vnode_slice:
+            transfer_dict.update({vnode_number: {'target_node': new_node_name, 'keys': []}})
+
+        # Start adding transfer keys to the transfer dict object
+        for key in self._data_store.items():
+            # To check if the associated vnode for key is in the list of the vnodes which needs to be transferred
+            if (key[0] % self._TOTAL_VIRTUAL_NODES) in local_vnode_slice:
+                # To check if we are on the existing node which needs to be considered for vnode movement
+                if self.name == self._vnode_map.get_assigned_node(key[0]):
+                    transfer_dict[key[0] % self._TOTAL_VIRTUAL_NODES]['keys'].append(key[0])
+
         # Transfer the remapped keys to the new node
         self.transfer_keys(transfer_dict)
 
@@ -154,6 +168,7 @@ class Node:
         # Problem statement 4.a
         # Finds all vnodes mapped to this node and shuffles them
         # Implement this logic and store in local_vnode_list        
+        local_vnode_list = self._vnode_map.get_list_of_vnodes_assigned_to_node(self.name)
 
         # Prepares to map all vnodes proportionally and their corresponding keys for transfer
         assigned_node_list = list(self._node_dict.keys()) * math.ceil(len(local_vnode_list) / len(self._node_dict))
@@ -170,8 +185,34 @@ class Node:
         #               96: {'target_node': <nodeB>, 'keys': [<user id list>]}
         #               ...
         #                }
-        # Here 23 and 96 are examples of vnode ids        
+        # Here 23 and 96 are examples of vnode ids
 
+        count = 0
+        i = 0
+        number_of_elements = (round(len(self._data_store.keys())/len(local_vnode_list)))
+
+        transfer_key_list = []
+        transfer_key_dict = {}
+        for data_index in self._data_store.keys():
+            transfer_key_list.append(data_index)
+            if i < number_of_elements-1:
+                i += 1
+            else:
+                transfer_key_dict.update({count: transfer_key_list})
+                print(transfer_key_dict)
+                transfer_key_list = []
+                i = 0
+                count += 1
+
+        #print(transfer_key_dict)
+
+        j = 0
+        for data_key in transfer_node_mapping.keys():
+            #print(data_key)
+            transfer_dict.update({data_key: {'target_node': transfer_node_mapping[data_key], 'keys': transfer_key_dict[j]}})
+            j += 1
+
+        #print(len(transfer_dict))
         # Transfer the remapped keys to the extra nodes
         self.transfer_keys(transfer_dict)
 
