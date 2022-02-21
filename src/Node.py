@@ -105,6 +105,7 @@ class Node:
 
             # Transfer all keys for a vnode and remove them from the existing node
             for key in transfer_data['keys']:
+                #print(key)
                 target_node.set_data(key, self._data_store[key], True)
                 entry = self.remove_data(key)
 
@@ -187,35 +188,31 @@ class Node:
         #                }
         # Here 23 and 96 are examples of vnode ids
 
-        count = 0
-        i = 0
-        number_of_elements = (round(len(self._data_store.keys())/len(local_vnode_list)))
-
-        transfer_key_list = []
         transfer_key_dict = {}
+
+        # Start creating a transfer object with empty list of transfer keys
+        for vnode in local_vnode_list:
+            transfer_key_dict.update({vnode: []})
+
         for data_index in self._data_store.keys():
-            transfer_key_list.append(data_index)
-            if i < number_of_elements-1:
-                i += 1
-            else:
-                transfer_key_dict.update({count: transfer_key_list})
-                print(transfer_key_dict)
-                transfer_key_list = []
-                i = 0
-                count += 1
+            transfer_key_dict[data_index % self._TOTAL_VIRTUAL_NODES].append(data_index)
 
-        #print(transfer_key_dict)
-
-        j = 0
         for data_key in transfer_node_mapping.keys():
             #print(data_key)
-            transfer_dict.update({data_key: {'target_node': transfer_node_mapping[data_key], 'keys': transfer_key_dict[j]}})
-            j += 1
+            transfer_dict.update({data_key: {'target_node': transfer_node_mapping[data_key], 'keys': transfer_key_dict[data_key]}})
 
-        #print(len(transfer_dict))
         # Transfer the remapped keys to the extra nodes
         self.transfer_keys(transfer_dict)
 
         # Finally updates the node mappings in all remaining nodes to remove the deleted node
         for node in self._node_dict.values():
             node.populate_nodes(new_node_dict)
+
+    def get_vnode_mapping_for_nodes(self, file_name):
+        virtual_node_details = ''
+        for node in self._node_dict:
+            virtual_node_details += f' {node} => {self._vnode_map.get_list_of_vnodes_assigned_to_node(node)} \n\n'
+
+        f = open(file_name, "w")
+        f.write(virtual_node_details)
+        f.close()
